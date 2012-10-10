@@ -47,6 +47,7 @@
      <Compile Include="Assets\graph\Center.cs" />
      <Compile Include="Assets\graph\Corner.cs" />
      <Compile Include="Assets\graph\Edge.cs" />
+     <Compile Include="Assets\tests\tests.cs" />
      <Compile Include="Assets\third-party\PM_PRNG.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

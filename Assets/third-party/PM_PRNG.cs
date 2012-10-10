@@ -64,7 +64,7 @@ public class PM_PRNG {
 		 * as a float between nearly 0 and nearly 1.0.
 		 */
 		public double nextDouble() {
-			return (gen() / 2147483647);
+			return ((double)gen() / 2147483647);
 		}
 		
 		/**
