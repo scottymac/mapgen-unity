@@ -44,6 +44,8 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\IslandShape.cs" />
+     <Compile Include="Assets\Map.cs" />
      <Compile Include="Assets\graph\Center.cs" />
      <Compile Include="Assets\graph\Corner.cs" />
      <Compile Include="Assets\graph\Edge.cs" />
