@@ -233,7 +233,7 @@ public class Map {
 
     
     // Improve the random set of points with Lloyd Relaxation.
-    public function improveRandomPoints(points:Vector.<Point>):void {
+    public void improveRandomPoints(List<Vector2> points) {
       // We'd really like to generate "blue noise". Algorithms:
       // 1. Poisson dart throwing: check each new point against all
       //     existing points, and reject it if it's too close.
@@ -245,14 +245,16 @@ public class Map {
       // Option 3 is implemented here. If it's run for too many iterations,
       // it will turn into a grid, but convergence is very slow, and we only
       // run it a few times.
-      var i:int, p:Point, q:Point, voronoi:Voronoi, region:Vector.<Point>;
-      for (i = 0; i < NUM_LLOYD_ITERATIONS; i++) {
+		Voronoi voronoi;
+		List<Vector2> region;
+		
+      for (int i = 0; i < NUM_LLOYD_ITERATIONS; i++) {
         voronoi = new Voronoi(points, null, new Rectangle(0, 0, SIZE, SIZE));
-        for each (p in points) {
+        foreach (Vector2 p in points) {
             region = voronoi.region(p);
             p.x = 0.0;
             p.y = 0.0;
-            for each (q in region) {
+            foreach (Vector2 q in region) {
                 p.x += q.x;
                 p.y += q.y;
               }
@@ -273,38 +275,37 @@ public class Map {
     // moved to the average of the polygon centers around them. Short
     // edges become longer. Long edges tend to become shorter. The
     // polygons tend to be more uniform after this step.
-    public function improveCorners():void {
-      var newCorners:Vector.<Point> = new Vector.<Point>(corners.length);
-      var q:Corner, r:Center, point:Point, i:int, edge:Edge;
+    public void improveCorners() {
+      	List<Vector2> newCorners = new List<Vector2>(corners.Length);
 
-      // First we compute the average of the centers next to each corner.
-      for each (q in corners) {
-          if (q.border) {
-            newCorners[q.index] = q.point;
-          } else {
-            point = new Point(0.0, 0.0);
-            for each (r in q.touches) {
-                point.x += r.point.x;
-                point.y += r.point.y;
-              }
-            point.x /= q.touches.length;
-            point.y /= q.touches.length;
-            newCorners[q.index] = point;
-          }
-        }
-
-      // Move the corners to the new locations.
-      for (i = 0; i < corners.length; i++) {
-        corners[i].point = newCorners[i];
-      }
-
-      // The edge midpoints were computed for the old corners and need
-      // to be recomputed.
-      for each (edge in edges) {
-          if (edge.v0 && edge.v1) {
-            edge.midpoint = Point.interpolate(edge.v0.point, edge.v1.point, 0.5);
-          }
-        }
+	// First we compute the average of the centers next to each corner.
+	foreach (Corner q in corners) {
+	  if (q.border) {
+	    newCorners[q.index] = q.point;
+	  } else {
+	    Vector2 point = new Vector2(0.0, 0.0);
+	    foreach (Center r in q.touches) {
+	        point.x += r.point.x;
+	        point.y += r.point.y;
+	      }
+	    point.x /= q.touches.length;
+	    point.y /= q.touches.length;
+	    newCorners[q.index] = point;
+	  }
+	}
+	
+	// Move the corners to the new locations.
+	for (int i = 0; i < corners.length; i++) {
+	corners[i].point = newCorners[i];
+	}
+	
+	// The edge midpoints were computed for the old corners and need
+	// to be recomputed.
+	foreach (Edge edge in edges) {
+	  if (edge.v0 && edge.v1) {
+	    edge.midpoint = Mathf.Lerp(edge.v0.point, edge.v1.point, 0.5);
+	  }
+	}
     }
 
     
@@ -312,11 +313,11 @@ public class Map {
     // algorithms that work only on land.  We return an array instead
     // of a vector because the redistribution algorithms want to sort
     // this array using Array.sortOn.
-    public function landCorners(corners:Vector.<Corner>):Array {
-      var q:Corner, locations:Array = [];
-      for each (q in corners) {
+    public List<Corner> landCorners(List<Corner> corners) {
+      List<Corner> locations = new List<Corner>();
+      foreach (Corner q in corners) {
           if (!q.ocean && !q.coast) {
-            locations.push(q);
+            locations.Add(q);
           }
         }
       return locations;
@@ -336,9 +337,9 @@ public class Map {
       var libedges:Vector.<com.nodename.Delaunay.Edge> = voronoi.edges();
       var centerLookup:Dictionary = new Dictionary();
 
-      // Build Center objects for each of the points, and a lookup map
+      // Build Center objects foreach of the points, and a lookup map
       // to find those Center objects again as we build the graph
-      for each (point in points) {
+      foreach (point in points) {
           p = new Center();
           p.index = centers.length;
           p.point = point;
@@ -351,7 +352,7 @@ public class Map {
       
       // Workaround for Voronoi lib bug: we need to call region()
       // before Edges or neighboringSites are available
-      for each (p in centers) {
+      foreach (p in centers) {
           voronoi.region(p.point);
         }
       
@@ -367,7 +368,7 @@ public class Map {
         
         if (point == null) return null;
         for (var bucket:int = int(point.x)-1; bucket <= int(point.x)+1; bucket++) {
-          for each (q in _cornerMap[bucket]) {
+          foreach (q in _cornerMap[bucket]) {
               var dx:Number = point.x - q.point.x;
               var dy:Number = point.y - q.point.y;
               if (dx*dx + dy*dy < 1e-6) {
@@ -390,7 +391,7 @@ public class Map {
         return q;
       }
     
-      for each (var libedge:com.nodename.Delaunay.Edge in libedges) {
+      foreach (var libedge:com.nodename.Delaunay.Edge in libedges) {
           var dedge:LineSegment = libedge.delaunayLine();
           var vedge:LineSegment = libedge.voronoiEdge();
 
@@ -468,11 +469,11 @@ public class Map {
       var q:Corner, s:Corner;
       var queue:Array = [];
       
-      for each (q in corners) {
+      foreach (q in corners) {
           q.water = !inside(q.point);
         }
 
-      for each (q in corners) {
+      foreach (q in corners) {
           // The edges of the map are elevation 0
           if (q.border) {
             q.elevation = 0.0;
@@ -488,7 +489,7 @@ public class Map {
       while (queue.length > 0) {
         q = queue.shift();
 
-        for each (s in q.adjacent) {
+        foreach (s in q.adjacent) {
             // Every step up is epsilon over water or 1 over land. The
             // number doesn't matter because we'll rescale the
             // elevations later.
@@ -558,9 +559,9 @@ public class Map {
       var queue:Array = [];
       var p:Center, q:Corner, r:Center, numWater:int;
       
-      for each (p in centers) {
+      foreach (p in centers) {
           numWater = 0;
-          for each (q in p.corners) {
+          foreach (q in p.corners) {
               if (q.border) {
                 p.border = true;
                 p.ocean = true;
@@ -575,7 +576,7 @@ public class Map {
         }
       while (queue.length > 0) {
         p = queue.shift();
-        for each (r in p.neighbors) {
+        foreach (r in p.neighbors) {
             if (r.water && !r.ocean) {
               r.ocean = true;
               queue.push(r);
@@ -586,10 +587,10 @@ public class Map {
       // Set the polygon attribute 'coast' based on its neighbors. If
       // it has at least one ocean and at least one land neighbor,
       // then this is a coastal polygon.
-      for each (p in centers) {
+      foreach (p in centers) {
           var numOcean:int = 0;
           var numLand:int = 0;
-          for each (r in p.neighbors) {
+          foreach (r in p.neighbors) {
               numOcean += int(r.ocean);
               numLand += int(!r.water);
             }
@@ -601,10 +602,10 @@ public class Map {
       // attributes. If all polygons connected to this corner are
       // ocean, then it's ocean; if all are land, then it's land;
       // otherwise it's coast.
-      for each (q in corners) {
+      foreach (q in corners) {
           numOcean = 0;
           numLand = 0;
-          for each (p in q.touches) {
+          foreach (p in q.touches) {
               numOcean += int(p.ocean);
               numLand += int(!p.water);
             }
@@ -618,9 +619,9 @@ public class Map {
     // Polygon elevations are the average of the elevations of their corners.
     public function assignPolygonElevations():void {
       var p:Center, q:Corner, sumElevation:Number;
-      for each (p in centers) {
+      foreach (p in centers) {
           sumElevation = 0.0;
-          for each (q in p.corners) {
+          foreach (q in p.corners) {
               sumElevation += q.elevation;
             }
           p.elevation = sumElevation / p.corners.length;
@@ -634,9 +635,9 @@ public class Map {
     public function calculateDownslopes():void {
       var q:Corner, s:Corner, r:Corner;
       
-      for each (q in corners) {
+      foreach (q in corners) {
           r = q;
-          for each (s in q.adjacent) {
+          foreach (s in q.adjacent) {
               if (s.elevation <= r.elevation) {
                 r = s;
               }
@@ -655,7 +656,7 @@ public class Map {
       var q:Corner, r:Corner, i:int, changed:Boolean;
       
       // Initially the watershed pointer points downslope one step.      
-      for each (q in corners) {
+      foreach (q in corners) {
           q.watershed = q;
           if (!q.ocean && !q.coast) {
             q.watershed = q.downslope;
@@ -668,7 +669,7 @@ public class Map {
       // p.watershed.watershed instead of p.downslope.watershed.
       for (i = 0; i < 100; i++) {
         changed = false;
-        for each (q in corners) {
+        foreach (q in corners) {
             if (!q.ocean && !q.coast && !q.watershed.coast) {
               r = q.downslope.watershed;
               if (!r.ocean) q.watershed = r;
@@ -678,7 +679,7 @@ public class Map {
         if (!changed) break;
       }
       // How big is each watershed?
-      for each (q in corners) {
+      foreach (q in corners) {
           r = q.watershed;
           r.watershed_size = 1 + (r.watershed_size || 0);
         }
@@ -715,7 +716,7 @@ public class Map {
       var q:Corner, r:Corner, newMoisture:Number;
       var queue:Array = [];
       // Fresh water
-      for each (q in corners) {
+      foreach (q in corners) {
           if ((q.water || q.river > 0) && !q.ocean) {
             q.moisture = q.river > 0? Math.min(3.0, (0.2 * q.river)) : 1.0;
             queue.push(q);
@@ -726,7 +727,7 @@ public class Map {
       while (queue.length > 0) {
         q = queue.shift();
 
-        for each (r in q.adjacent) {
+        foreach (r in q.adjacent) {
             newMoisture = q.moisture * 0.9;
             if (newMoisture > r.moisture) {
               r.moisture = newMoisture;
@@ -735,7 +736,7 @@ public class Map {
           }
       }
       // Salt water
-      for each (q in corners) {
+      foreach (q in corners) {
           if (q.ocean || q.coast) {
             q.moisture = 1.0;
           }
@@ -746,9 +747,9 @@ public class Map {
     // Polygon moisture is the average of the moisture at corners
     public function assignPolygonMoisture():void {
       var p:Center, q:Corner, sumMoisture:Number;
-      for each (p in centers) {
+      foreach (p in centers) {
           sumMoisture = 0.0;
-          for each (q in p.corners) {
+          foreach (q in p.corners) {
               if (q.moisture > 1.0) q.moisture = 1.0;
               sumMoisture += q.moisture;
             }
@@ -795,7 +796,7 @@ public class Map {
     
     public function assignBiomes():void {
       var p:Center;
-      for each (p in centers) {
+      foreach (p in centers) {
           p.biome = getBiome(p);
         }
     }
@@ -804,14 +805,14 @@ public class Map {
     // Look up a Voronoi Edge object given two adjacent Voronoi
     // polygons, or two adjacent Voronoi corners
     public function lookupEdgeFromCenter(p:Center, r:Center):Edge {
-      for each (var edge:Edge in p.borders) {
+      foreach (var edge:Edge in p.borders) {
           if (edge.d0 == r || edge.d1 == r) return edge;
         }
       return null;
     }
 
     public function lookupEdgeFromCorner(q:Corner, s:Corner):Edge {
-      for each (var edge:Edge in q.protrudes) {
+      foreach (var edge:Edge in q.protrudes) {
           if (edge.v0 == s || edge.v1 == s) return edge;
         }
       return null;
